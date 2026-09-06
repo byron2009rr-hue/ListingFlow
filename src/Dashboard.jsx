@@ -20,26 +20,62 @@ function Dashboard({
 }) {
   const [activeTab, setActiveTab] = useState('generate');
   const [generationType, setGenerationType] = useState('mls');
-  const [propertyData, setPropertyData] = useState('');
   const [language, setLanguage] = useState('english');
   const [generating, setGenerating] = useState(false);
   const [generatedContent, setGeneratedContent] = useState('');
   const [contentHistory, setContentHistory] = useState([]);
 
+  // Property details form state
+  const [propertyDetails, setPropertyDetails] = useState({
+    address: '',
+    price: '',
+    squareFootage: '',
+    bedrooms: '',
+    bathrooms: '',
+    yearBuilt: '',
+    propertyType: 'Single Family',
+    features: '',
+    description: '',
+  });
+
   const canGenerate = generationLimit === Infinity || generationCount < generationLimit;
   const generationsRemaining = generationLimit === Infinity ? '∞' : generationLimit - generationCount;
 
+  const handlePropertyDetailsChange = (e) => {
+    const { name, value } = e.target;
+    setPropertyDetails(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const buildPropertySummary = () => {
+    return `
+Address: ${propertyDetails.address}
+Price: $${propertyDetails.price}
+Square Footage: ${propertyDetails.squareFootage} sq ft
+Bedrooms: ${propertyDetails.bedrooms}
+Bathrooms: ${propertyDetails.bathrooms}
+Year Built: ${propertyDetails.yearBuilt}
+Property Type: ${propertyDetails.propertyType}
+Features: ${propertyDetails.features}
+Description: ${propertyDetails.description}
+    `.trim();
+  };
+
   const handleGenerate = async () => {
-    if (!propertyData.trim() || !canGenerate) return;
+    if (!propertyDetails.address.trim() || !canGenerate) return;
 
     setGenerating(true);
     try {
+      const propertyContent = buildPropertySummary();
+      
       const response = await fetch('/api/generate.js', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: generationType,
-          content: propertyData,
+          content: propertyContent,
           language: userTier === 'pro' ? language : 'english',
           userId: user.id,
         }),
@@ -49,8 +85,18 @@ function Dashboard({
 
       if (data.success) {
         setGeneratedContent(data.content);
-        setContentHistory([{ type: generationType, content: data.content }, ...contentHistory]);
-        setPropertyData('');
+        setContentHistory([{ type: generationType, content: data.content, property: propertyDetails.address }, ...contentHistory]);
+        setPropertyDetails({
+          address: '',
+          price: '',
+          squareFootage: '',
+          bedrooms: '',
+          bathrooms: '',
+          yearBuilt: '',
+          propertyType: 'Single Family',
+          features: '',
+          description: '',
+        });
         onGenerate();
       } else {
         alert('Generation failed: ' + data.error);
@@ -194,20 +240,128 @@ function Dashboard({
                 </div>
               )}
 
-              <div className="form-group">
-                <label>Property Details</label>
-                <textarea
-                  value={propertyData}
-                  onChange={(e) => setPropertyData(e.target.value)}
-                  placeholder="Paste property info, address, features, etc."
-                  rows="6"
-                  disabled={!canGenerate}
-                />
+              <div className="form-section">
+                <h3>Property Details</h3>
+                
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Address *</label>
+                    <input
+                      type="text"
+                      name="address"
+                      value={propertyDetails.address}
+                      onChange={handlePropertyDetailsChange}
+                      placeholder="123 Main St, City, State"
+                      disabled={!canGenerate}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Price</label>
+                    <input
+                      type="text"
+                      name="price"
+                      value={propertyDetails.price}
+                      onChange={handlePropertyDetailsChange}
+                      placeholder="500000"
+                      disabled={!canGenerate}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Square Footage</label>
+                    <input
+                      type="text"
+                      name="squareFootage"
+                      value={propertyDetails.squareFootage}
+                      onChange={handlePropertyDetailsChange}
+                      placeholder="2500"
+                      disabled={!canGenerate}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Bedrooms</label>
+                    <input
+                      type="text"
+                      name="bedrooms"
+                      value={propertyDetails.bedrooms}
+                      onChange={handlePropertyDetailsChange}
+                      placeholder="4"
+                      disabled={!canGenerate}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Bathrooms</label>
+                    <input
+                      type="text"
+                      name="bathrooms"
+                      value={propertyDetails.bathrooms}
+                      onChange={handlePropertyDetailsChange}
+                      placeholder="2.5"
+                      disabled={!canGenerate}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Year Built</label>
+                    <input
+                      type="text"
+                      name="yearBuilt"
+                      value={propertyDetails.yearBuilt}
+                      onChange={handlePropertyDetailsChange}
+                      placeholder="2020"
+                      disabled={!canGenerate}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Property Type</label>
+                    <select
+                      name="propertyType"
+                      value={propertyDetails.propertyType}
+                      onChange={handlePropertyDetailsChange}
+                      disabled={!canGenerate}
+                    >
+                      <option value="Single Family">Single Family</option>
+                      <option value="Condo">Condo</option>
+                      <option value="Townhouse">Townhouse</option>
+                      <option value="Multi-Family">Multi-Family</option>
+                      <option value="Land">Land</option>
+                      <option value="Commercial">Commercial</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label>Features (comma separated)</label>
+                  <input
+                    type="text"
+                    name="features"
+                    value={propertyDetails.features}
+                    onChange={handlePropertyDetailsChange}
+                    placeholder="Pool, Hardwood floors, Updated kitchen, Garage"
+                    disabled={!canGenerate}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Additional Description</label>
+                  <textarea
+                    name="description"
+                    value={propertyDetails.description}
+                    onChange={handlePropertyDetailsChange}
+                    placeholder="Any additional details about the property..."
+                    rows="4"
+                    disabled={!canGenerate}
+                  />
+                </div>
               </div>
 
               <button
                 onClick={handleGenerate}
-                disabled={!canGenerate || !propertyData.trim() || generating}
+                disabled={!canGenerate || !propertyDetails.address.trim() || generating}
                 className="btn-primary"
               >
                 {generating ? 'Generating...' : 'Generate Content'}
@@ -239,7 +393,7 @@ function Dashboard({
                 <div className="history-list">
                   {contentHistory.map((item, idx) => (
                     <div key={idx} className="history-item">
-                      <h4>{item.type.toUpperCase()}</h4>
+                      <h4>{item.type.toUpperCase()} - {item.property}</h4>
                       <p>{item.content.substring(0, 200)}...</p>
                     </div>
                   ))}
