@@ -360,3 +360,28 @@
 .sidebar::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.25);
 }
+.form-section {
+  margin-bottom: 20px;
+  background: rgba(59, 130, 246, 0.05);
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid rgba(59, 130, 246, 0.1);
+}
+
+.form-section h3 {
+  color: #60a5fa;
+  margin-bottom: 16px;
+  font-size: 1.1rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+}
