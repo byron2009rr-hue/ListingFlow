@@ -25,7 +25,6 @@ function Dashboard({
   const [generatedContent, setGeneratedContent] = useState('');
   const [contentHistory, setContentHistory] = useState([]);
 
-  // Property details form state
   const [propertyDetails, setPropertyDetails] = useState({
     address: '',
     price: '',
@@ -70,7 +69,7 @@ Description: ${propertyDetails.description}
     try {
       const propertyContent = buildPropertySummary();
       
-      const response = await fetch('/api/generate.js', {
+      const response = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -113,7 +112,7 @@ Description: ${propertyDetails.description}
     if (!feedbackMessage.trim()) return;
 
     try {
-      const response = await fetch('/api/send-feedback-email.js', {
+      const response = await fetch('/api/send-feedback-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -139,7 +138,7 @@ Description: ${propertyDetails.description}
     if (!contactMessage.trim()) return;
 
     try {
-      const response = await fetch('/api/send-contact-email.js', {
+      const response = await fetch('/api/send-contact-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
