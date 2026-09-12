@@ -24,28 +24,29 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Groq API key not configured' });
     }
 
-    let systemPrompt = 'You are an expert real estate marketing copywriter. Create compelling, engaging content that sells properties.';
+    let systemPrompt = 'You are an expert real estate marketing copywriter.';
     let userPrompt = '';
 
     if (language === 'spanish') {
-      systemPrompt = 'Eres un experto en marketing inmobiliario. Crea contenido atractivo y convincente que venda propiedades.';
+      systemPrompt = 'Eres un experto en marketing inmobiliario.';
     }
 
     switch (type) {
       case 'mls':
-        userPrompt = `Create a compelling, SEO-optimized MLS listing description for:\n\n${content}\n\nMake it engaging, highlight key features, and follow MLS best practices.`;
+        userPrompt = `Create an MLS listing description:\n${content}`;
         break;
       case 'social':
-        userPrompt = `Create 3 engaging social media captions (Instagram/Facebook) for:\n\n${content}\n\nMake them catchy, include relevant hashtags, and encourage engagement.`;
+        userPrompt = `Create 3 social media captions:\n${content}`;
         break;
       case 'flyer':
-        userPrompt = `Create marketing copy for a property flyer based on:\n\n${content}\n\nInclude headlines, bullet points, and a call-to-action. Format for easy reading.`;
+        userPrompt = `Create property flyer copy:\n${content}`;
         break;
       default:
-        return res.status(400).json({ error: 'Invalid content type' });
+        return res.status(400).json({ error: 'Invalid type' });
     }
 
-    // Call Groq API
+    console.log('Calling Groq with:', { systemPrompt, userPrompt });
+
     const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -63,13 +64,15 @@ export default async function handler(req, res) {
       }),
     });
 
+    const responseText = await groqResponse.text();
+    console.log('Groq response status:', groqResponse.status);
+    console.log('Groq response:', responseText);
+
     if (!groqResponse.ok) {
-      const error = await groqResponse.text();
-      console.error('Groq API error:', error);
-      return res.status(500).json({ error: 'Generation failed' });
+      return res.status(500).json({ error: `Groq error: ${responseText}` });
     }
 
-    const groqData = await groqResponse.json();
+    const groqData = JSON.parse(responseText);
     const generatedContent = groqData.choices[0].message.content;
 
     return res.status(200).json({
@@ -78,6 +81,6 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error('Error:', error);
-    return res.status(500).json({ error: 'Generation failed: ' + error.message });
+    return res.status(500).json({ error: error.message });
   }
 }
